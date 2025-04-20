@@ -79,7 +79,7 @@ List all non-countries.
 ```{python}
 run_sql_and_return_html(cnx,"""
 select 
-  *
+  `Long Name`
 from 
   world_bank_data.wdi_country
 where 
@@ -363,11 +363,11 @@ order by
 run_sql_and_return_html(cnx,"""
 select
   Region,
-  SUM(CASE WHEN `Income Group` = 'High income' THEN 1 ELSE 0 END) AS 'High income',
-  SUM(CASE WHEN `Income Group` = 'Upper middle income' THEN 1 ELSE 0 END) AS 'Upper middle income',
-  SUM(CASE WHEN `Income Group` = 'Lower middle income' THEN 1 ELSE 0 END) AS 'Lower middle income',
-  SUM(CASE WHEN `Income Group` = 'Low income' THEN 1 ELSE 0 END) AS 'Low income',
-  count(*) AS 'Total'
+  FORMAT(SUM(CASE WHEN `Income Group` = 'High income' THEN 1 ELSE 0 END), 1) AS 'High income',
+  FORMAT(SUM(CASE WHEN `Income Group` = 'Upper middle income' THEN 1 ELSE 0 END), 1) AS 'Upper middle income',
+  FORMAT(SUM(CASE WHEN `Income Group` = 'Lower middle income' THEN 1 ELSE 0 END), 1) AS 'Lower middle income',
+  FORMAT(SUM(CASE WHEN `Income Group` = 'Low income' THEN 1 ELSE 0 END), 1) AS 'Low income',
+  FORMAT(count(*), 1) AS 'Total'
 from
   sp25_luchsingerkr_user.wdi_country
 where
@@ -457,7 +457,8 @@ order by
 run_sql_and_return_html(cnx,"""
 select 
   r.Region, 
-  i.`Income Group`
+  i.`Income Group`,
+  0 as country_count
 from 
   (select distinct Region from sp25_luchsingerkr_user.wdi_country where Region is not null) r
 cross join
@@ -570,8 +571,6 @@ with income_counts as (
   select
     c.`Income Group`,
     count(*) as country_count,
-    (select count(*) from sp25_luchsingerkr_user.wdi_country where `Income Group` is not null) as income_total,
-    (select count(*) from sp25_luchsingerkr_user.wdi_country) as grand_total
   from
     sp25_luchsingerkr_user.wdi_country c
   where
@@ -583,8 +582,6 @@ with income_counts as (
 select
   `Income Group`,
   country_count as 'Number of Countries',
-  income_total as 'Total Countries with Income Data',
-  grand_total as 'Grand Total Countries',
   round(country_count / income_total * 100, 1) as 'Percent of Income-Classified Countries',
   round(country_count / grand_total * 100, 1) as 'Percent of All Countries'
 from
