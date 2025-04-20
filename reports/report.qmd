@@ -571,6 +571,8 @@ with income_counts as (
   select
     c.`Income Group`,
     count(*) as country_count,
+    (select count(*) from sp25_luchsingerkr_user.wdi_country where `Income Group` is not null) as income_total,
+    (select count(*) from sp25_luchsingerkr_user.wdi_country) as grand_total
   from
     sp25_luchsingerkr_user.wdi_country c
   where
@@ -582,7 +584,7 @@ with income_counts as (
 select
   `Income Group`,
   country_count as 'Number of Countries',
-  round(country_count / income_total * 100, 1) as 'Percent of Income-Classified Countries',
+  grand_total as 'Grand Total Countries',
   round(country_count / grand_total * 100, 1) as 'Percent of All Countries'
 from
   income_counts
